@@ -10,6 +10,11 @@
 |* Thanks,
 |* Sean */
 
+/* Updated for personal specific use case
+|* by Jared Loson
+|* Thanks,
+|* Jared */
+
 ;(function ($, window) {
 
     // test for feature support and return if failure
