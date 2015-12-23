@@ -35,16 +35,18 @@
 
     var tubular = function(node, options) { // should be called on the wrapper div
         var options = $.extend({}, defaults, options),
-            $body = $('body') // cache body node
-            $node = $(node); // cache wrapper node
+        $node = $(node); // cache wrapper node
 
         // build container
         var tubularContainer = '<div id="tubular-container" style="overflow: hidden; position: fixed; z-index: 1; width: 100%; height: 100%"><div id="tubular-player" style="position: absolute"></div></div><div id="tubular-shield" style="width: 100%; height: 100%; z-index: 2; position: absolute; left: 0; top: 0;"></div>';
 
         // set up css prereq's, inject tubular container and set up wrapper defaults
-        $('html,body').css({'width': '100%', 'height': '100%'});
-        $body.prepend(tubularContainer);
-        $node.css({position: 'relative', 'z-index': options.wrapperZIndex});
+        if (options.body) {
+           $('html,body').css({'width': '100%', 'height': '100%'}); 
+           $node.css({position: 'relative', 'z-index': options.wrapperZIndex});
+        }
+        $node.prepend(tubularContainer);
+        
 
         // set up iframe player, use global scope so YT api can talk
         window.player;
@@ -56,6 +58,7 @@
                 playerVars: {
                     controls: 0,
                     showinfo: 0,
+                    rel: 0,
                     modestbranding: 1,
                     wmode: 'transparent'
                 },
@@ -69,13 +72,13 @@
         window.onPlayerReady = function(e) {
             resize();
             if (options.mute) e.target.mute();
-            e.target.seekTo(options.start);
-            e.target.playVideo();
         }
 
         window.onPlayerStateChange = function(state) {
-            if (state.data === 0 && options.repeat) { // video ended and repeat option is set true
-                player.seekTo(options.start); // restart
+            if (state.data === 0 && !options.repeat) { // video ended and repeat option is set true
+                $('.modal iframe').css('opacity', 0);
+                $('.modal').fadeOut(300);
+                player.pauseVideo();
             }
         }
 
@@ -106,7 +109,9 @@
 
         $('body').on('click','.' + options.playButtonClass, function(e) { // play button
             e.preventDefault();
+            $('.modal iframe').css('opacity', 1);
             player.playVideo();
+            player.seekTo(options.start);
         }).on('click', '.' + options.pauseButtonClass, function(e) { // pause button
             e.preventDefault();
             player.pauseVideo();
@@ -130,7 +135,7 @@
     // load yt iframe js api
 
     var tag = document.createElement('script');
-    tag.src = "//www.youtube.com/iframe_api";
+    tag.src = "http://www.youtube.com/iframe_api";
     var firstScriptTag = document.getElementsByTagName('script')[0];
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
